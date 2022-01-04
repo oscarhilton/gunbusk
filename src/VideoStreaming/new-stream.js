@@ -4,7 +4,7 @@ import GunStreamer from "./gun-streamer";
 import GunViewer from "./gun-viewer";
 
 export default class NewStream {
-	constructor(gunInstance, pubKey, senderVideoDom, receiverVideoDom) {
+	constructor(gunInstance, pubKey, send, receive) {
 		this.gunInstance = gunInstance;
 		this.cameraOptions = {
 			video: {
@@ -16,8 +16,8 @@ export default class NewStream {
 			audio: true
 		};
     this.pubKey = pubKey;
-		this.senderVideoDom = senderVideoDom;
-		this.receiverVideoDom = receiverVideoDom;
+		this.senderVideoDom = send;
+		this.receiverVideoDom = receive;
     this.recordState = null;
 
 		this.initViewer(MIMETYPE_VIDEO_AUDIO);
@@ -57,7 +57,7 @@ export default class NewStream {
 		this.gunStreamer = new GunStreamer(streamer_config);
 	}
 
-	initRecorder(mimeType) {
+	async initRecorder(mimeType) {
 		const recorder_config = {
 			mimeType,
 			video_id: this.receiverVideoDom, //Video html element id
@@ -73,6 +73,7 @@ export default class NewStream {
 
 		//Init the recorder
 		this.gunRecorder = new GunRecorder(recorder_config);
+		await this.gunRecorder.startCamera();
 	}
 
 	onRecordStateChange(state) {

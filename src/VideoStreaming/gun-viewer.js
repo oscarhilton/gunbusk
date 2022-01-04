@@ -19,7 +19,6 @@ export default class GunViewer {
 	}
 
 	init() {
-		console.log(this.video, "INIT!");
 		if (this.video) {
 			this.mediaBuffer.load();
 			this.video.src = window.URL.createObjectURL(this.mediaSource);
