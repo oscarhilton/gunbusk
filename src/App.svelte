@@ -3,6 +3,8 @@
 	import LiveStream from './LiveStream.svelte';
 	import LoginFrom from './LoginForm.svelte';
 	import { fade } from 'svelte/transition';
+  import Icon from 'svelte-icons-pack/Icon.svelte';
+  import ImFilm from 'svelte-icons-pack/im/ImFilm';
 
 	export let client;
 
@@ -28,16 +30,19 @@
 <Router>
   <footer class="navigation">
     <nav>
-      <Link to="/">Home</Link>
-      <Link to="login">Login</Link>
-      <Link to="stream">Live</Link>
+      <Link to="/"><Icon src={ImFilm} size="2em" /></Link>
+      <Link to="login"><Icon src={ImFilm} size="2em" /></Link>
+      <Link to="stream"><Icon src={ImFilm} size="2em" /></Link>
     </nav>
   </footer>
 
   <main style="height: calc(100% - 50px)">
     <Route path="/">
 			{#if isAuthed && alias }
-      Hello! {alias}!
+      <h1>Hello! {alias}!</h1>
+
+			<h2>Friends online</h2>
+
 			{:else}
 			<LoginFrom onSubmit={login} />
 			{/if}

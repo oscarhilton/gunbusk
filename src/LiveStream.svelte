@@ -31,15 +31,25 @@
     <button class="record-button {recording ? 'record-button--recording' : 'record-button--stopped'}"></button>
   </div>
   {:else}
-  <div class="video">
-    <div class="recording banner"></div>
-      <video class="video-dom" autoplay muted bind:this={videoReceiver}></video>
-    <div class="thumb">
-      <div class="live banner">live</div>
-      <video class="video-dom" bind:this={videoSender} autoplay muted></video>
+  <div class="flex-grid">
+    <div class="flex-grid-cell flex-grid-sm">
+      this is a sidebar
+    </div>
+    <div class="flex-grid-cell flex-grid-lg">
+      <div class="video">
+        <div class="recording banner"></div>
+          <video class="video-dom" autoplay muted bind:this={videoReceiver}></video>
+        <div class="thumb">
+          <div class="live banner">live</div>
+          <video class="video-dom" bind:this={videoSender} autoplay muted></video>
+        </div>
+      </div>
+      <button class="record-button {recording ? 'record-button--recording' : 'record-button--stopped'}"></button>
+    </div>
+    <div class="flex-grid-cell flex-grid-sm">
+      this is a sidebar
     </div>
   </div>
-  <button class="record-button {recording ? 'record-button--recording' : 'record-button--stopped'}"></button>
 	{/if}
 </MediaQuery>
 
@@ -47,6 +57,23 @@
 
 
 <style>
+
+  .flex-grid {
+    width: 100%;
+    display: flex;
+  }
+
+  .flex-grid-cell {
+    display: block;
+  }
+
+  .flex-grid-sm {
+    width: 15%;
+  }
+  .flex-grid-lg {
+    width: 70%;
+  }
+
 	.banner {
 		position: absolute;
 		top: 2%;
@@ -59,23 +86,11 @@
 		border-radius: 2%;
 	}
 
-	.live {}
-
-	.recording {
-		border: solid thin rgba(255, 255, 255, 0.5);
-	}
-	.recording::after {
-		content: '';
-		width: 100%;
-		height: 100%;
-	}
-
-
 	.video {
 		position: relative;
 		background: black;
-		width: 400px;
-		height: 380px;
+		width: 100%;
+		height: 100vh;
 		overflow: hidden;
 	}
 
