@@ -4,6 +4,7 @@
 	import MediaQuery from './mediaQuery.svelte'
 
 	export let client;
+	export let pub;
 
 	let recording;
 
@@ -12,7 +13,7 @@
 	
 	onMount(async () => {
 		// Start the users camera
-    client.initVideo(videoSender, videoReceiver);
+		client.initVideo(pub, videoSender, videoReceiver)
 	})
 </script>
 
@@ -38,10 +39,10 @@
     <div class="flex-grid-cell flex-grid-lg">
       <div class="video">
         <div class="recording banner"></div>
-          <video class="video-dom" autoplay muted bind:this={videoReceiver}></video>
+          <video class="video-dom" autoplay muted bind:this={videoSender} controls></video>
         <div class="thumb">
           <div class="live banner">live</div>
-          <video class="video-dom" bind:this={videoSender} autoplay muted></video>
+          <video class="video-dom" bind:this={videoReceiver} autoplay muted></video>
         </div>
       </div>
       <button class="record-button {recording ? 'record-button--recording' : 'record-button--stopped'}"></button>

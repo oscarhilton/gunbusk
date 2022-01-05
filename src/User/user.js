@@ -29,16 +29,18 @@ export default class User {
 
 	init() {
 		gun.on("auth", () => this.isAuthenticated.next(true));
-    user.once(({ alias, pub }) => {
+    user.once(({ alias, pub, ...rest }) => {
+			console.log({ alias, pub, ...rest });
 			this.alias.next(alias);
       this.pub.next(pub);
 		});
+
+		user.get("certificates").once((res) => console.log(res));
   }
 
-  initVideo(send, recieve) {
-    console.log("VIDEO STARTED!")
+  initVideo(pub, send, recieve) {
     return this.videoStream.next(
-			new VideoStream(gun, user.is.pub, send, recieve)
+			new VideoStream(gun, pub, send, recieve)
 		);
     // this.location.next(new LocationStream(gun, pub));
   }
@@ -121,12 +123,12 @@ export default class User {
 		return user !== undefined;
 	}
 
-	static logout() {
+	logout() {
 		gun.user().leave();
 		isAuthenticated.next(false);
 	};
 
-	static async generateFriendRequestsCertificate(callback = () => {}) {
+	async generateFriendRequestsCertificate(callback = () => {}) {
 		let certificateExists = await gun
 			.user()
 			.get("certificates")
@@ -163,7 +165,7 @@ export default class User {
 			});
 	}
 
-	static async generateAddFriendCertificate(publicKey, callback = () => {}) {
+	async generateAddFriendCertificate(publicKey, callback = () => {}) {
 		let certificateExists = await gun
 			.user()
 			.get("certificates")
@@ -203,7 +205,7 @@ export default class User {
 			});
 	}
 
-	static async createChatsCertificate(publicKey, callback = () => {}) {
+	async createChatsCertificate(publicKey, callback = () => {}) {
 		let certificateExists = await gun
 			.user()
 			.get("certificates")
@@ -242,7 +244,7 @@ export default class User {
 			});
 	}
 
-	static async createMessagesCertificate(publicKey, callback = () => {}) {
+	async createMessagesCertificate(publicKey, callback = () => {}) {
 		let certificateExists = await gun
 			.user()
 			.get("certificates")
@@ -281,11 +283,13 @@ export default class User {
 			});
 	}
 
-	static async addFriendRequest(publicKey, callback = () => {}) {
+	async addFriendRequest(publicKey, callback = () => {}) {
 		let addFriendRequestCertificate = await gun
 			.user(publicKey)
 			.get("certificates")
 			.get("friendRequests");
+
+		console.log(addFriendRequestCertificate, "CERT");
 
 		gun
 			.user(publicKey)
@@ -319,7 +323,8 @@ export default class User {
 			);
 	}
 
-	static acceptFriendRequest({ key, publicKey }, callback = () => {}) {
+	acceptFriendRequest({ key, publicKey }, callback = () => {}) {
+		console.log(key, publicKey);
 		gun
 			.user()
 			.get("friendRequests")
@@ -377,7 +382,7 @@ export default class User {
 			});
 	}
 
-	static rejectFriendRequest(key, callback = () => {}) {
+	rejectFriendRequest(key, callback = () => {}) {
 		gun
 			.user()
 			.get("friendRequests")
@@ -398,7 +403,7 @@ export default class User {
 			});
 	}
 
-	static async createChat(publicKey, callback = () => {}) {
+	async createChat(publicKey, callback = () => {}) {
 		gun
 			.user()
 			.get("chats")
@@ -499,7 +504,7 @@ export default class User {
 			});
 	}
 
-	static messageList = (roomId, pub) =>
+	messageList = (roomId, pub) =>
 		new Observable(async (subscriber) => {
 			let userPair = await gun.user()._.sea;
 			let friend = await gun.user(pub);
@@ -579,7 +584,7 @@ export default class User {
 				});
 		});
 
-  static sendMessage(roomId, publicKey, message, callback = () => {}) {
+  sendMessage(roomId, publicKey, message, callback = () => {}) {
     (async (callback = () => {}) => {
       let userPub = await gun.user().pair().pub;
       let userPair = await gun.user()._.sea;

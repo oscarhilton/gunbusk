@@ -1,3 +1,5 @@
+import client from '../Torrents/client';
+
 const RECORD_PREFIX = "GkXf";
 var parseWorker;
 var initialData;
@@ -15,9 +17,14 @@ export default class GunStreamer {
 	onDataAvailable(event) {
 		if (event.data.size > 0) {
 			var blob = event.data;
+
 			var response = new Response(blob)
 				.arrayBuffer()
 				.then(function (arrayBuffer) {
+					
+					console.log(arrayBuffer)
+					client.seedBuffer(arrayBuffer);
+
 					blob = null;
 					if (parseWorker != undefined) {
 						parseWorker.postMessage(arrayBuffer);

@@ -6,7 +6,7 @@ let client = new User();
 
 const app = new App({
 	target: document.body,
-	props: { gun, client }
+	props: { gun, client, user }
 });
 
 export default app;

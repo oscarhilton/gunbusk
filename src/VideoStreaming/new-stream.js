@@ -74,6 +74,7 @@ export default class NewStream {
 		//Init the recorder
 		this.gunRecorder = new GunRecorder(recorder_config);
 		await this.gunRecorder.startCamera();
+		this.gunRecorder.record();
 	}
 
 	onRecordStateChange(state) {
