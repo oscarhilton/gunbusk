@@ -5,7 +5,7 @@
 </script>
 
 <div class="container">
-  <span class="time">{time}</span>
+  <span class="time">{time}</span>  <span class="name">{isClient ? "bob" : "alice"}</span>
   <div class="aligner aligner--{isClient ? 'client' : 'other'}">
     <div class="message message--{isClient ? 'client' : 'other'}">
       {message}
@@ -34,14 +34,21 @@
   }
 
   .time {
-    margin-left: 16px;
+    margin-left: 20px;
     opacity: 0.1;
     margin-bottom: 5px;
-    display: block;
+    display: inline-block;
+  }
+
+  .name {
+    margin-left: 5px;
+    opacity: 0.4;
+    margin-bottom: 5px;
+    display: inline-block;
   }
 
   .message {
-    padding: 15px 20px 10px 20px;
+    padding: 15px 20px 14px;
     background: #1d1d1d;
     /* box-shadow: -3px 3px 5px rgba(0, 0, 0, 0.2); */
     border-radius: 20px 20px 20px 0;
