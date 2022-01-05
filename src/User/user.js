@@ -232,7 +232,7 @@ export default class User {
 					return callback({
 						errMessage: err,
 						errCode: "chats-certificate-creation-error",
-						success: undefined
+						success: true
 					});
 				else
 					return callback({
@@ -414,7 +414,7 @@ export default class User {
 						errMessage: "The chat already exists. Opening it now.",
 						errCode: "chat-already-exists",
 						chat: JSON.parse(chatExists),
-						success: undefined
+						success: true
 					});
 				}
 

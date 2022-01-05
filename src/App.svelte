@@ -1,10 +1,12 @@
 <script>
-	import { Router, Route, Link } from "svelte-navigator";
+	import { Router, Route, Link, navigate } from "svelte-navigator";
 	import { fade } from 'svelte/transition';
 
 	import LiveStream from './LiveStream.svelte';
 	import LoginFrom from './LoginForm.svelte';
 	import AddFriend from './AddFriend.svelte';
+	import Contract from './Contract.svelte';
+	import ChatBubble from './ChatBubble.svelte';
 
 	// Icons
 	import Icon from 'svelte-icons-pack/Icon.svelte';
@@ -43,22 +45,47 @@
 		client.acceptFriendRequest({ key: fr.key, publicKey: fr.pub });
 	}
 
+	const startChat = async () => {
+		await client.createChatsCertificate(fl.pub, ({ success: gotCert, ...rest }) => {
+			if (!gotCert) return console.log(rest);
+		})
+	client.createChat(fl.pub, ({ success, ...rest }) => {
+		if (!success) return console.log(rest);
+		console.log("going to chat!")
+		return navigate('/chat')
+	})
+}
+
 </script>
 
-<Router>
+<Router basepath="/">
   <footer class="navigation">
     <nav>
       <Link to="/"><Icon src={ImFilm} size="2em" /></Link>
       <Link to="login"><Icon src={ImFilm} size="2em" /></Link>
       <Link to="stream"><Icon src={ImFilm} size="2em" /></Link>
+      <Link to="chat"><Icon src={ImFilm} size="2em" /></Link>
     </nav>
   </footer>
 
   <main style="height: calc(100% - 50px)">
     <Route path="/">
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque id nisl sit amet ligula ornare blandit in luctus nibh. Curabitur venenatis elit odio, in sagittis quam ornare id. Vestibulum ultricies ultricies augue, et lacinia dui tincidunt et. Praesent bibendum orci odio, et scelerisque odio placerat vel. Nulla varius urna sodales lectus consequat, nec eleifend nulla dapibus. Nam purus enim, eleifend sit amet vulputate non, dictum et risus. Suspendisse enim nisi, fermentum sed ullamcorper eget, efficitur in libero. Cras posuere sed lacus non semper. Pellentesque lacinia nibh sit amet est pretium fringilla. Cras arcu ante, feugiat non gravida non, finibus eu urna.' />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+
 			{#if isAuthed && alias }
       <h1>Hello! {alias}!</h1>
 
+			<Contract sender="User" onSign={acceptFriendRequest} />
 
 			{#if fr}
 			{fr.alias}
@@ -69,7 +96,7 @@
 			<h2>Friends online</h2>
 			{#if fl}
 			{fl.alias}
-			<button>Start chat</button>
+			<button on:click={startChat}>Start chat</button>
 			{/if}
 			<AddFriend client={client} />
 
@@ -86,6 +113,21 @@
 				<LiveStream pub={pub} client={client} />
 			</div>
     </Route>
+
+		<Route path='chat'>
+			THIS IS A CHAT ROOM!
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque id nisl sit amet ligula ornare blandit in luctus nibh. Curabitur venenatis elit odio, in sagittis quam ornare id. Vestibulum ultricies ultricies augue, et lacinia dui tincidunt et. Praesent bibendum orci odio, et scelerisque odio placerat vel. Nulla varius urna sodales lectus consequat, nec eleifend nulla dapibus. Nam purus enim, eleifend sit amet vulputate non, dictum et risus. Suspendisse enim nisi, fermentum sed ullamcorper eget, efficitur in libero. Cras posuere sed lacus non semper. Pellentesque lacinia nibh sit amet est pretium fringilla. Cras arcu ante, feugiat non gravida non, finibus eu urna.' />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+			<ChatBubble message="Hello world!" />
+		</Route>
   </main>
 </Router>
 
@@ -94,7 +136,8 @@
 	:global(body) {
 		padding: 0;
 		margin: 0;
-		background: #f5f5f5;
+		background: #212121;
+		color: white;
 		min-height: 100vh;
 	}
 	.navigation {
