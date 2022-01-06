@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w -s",
-    "start": "sirv public --no-clear"
+    "dev": "rollup -c -w --single",
+    "start": "sirv public --no-clear --single"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
@@ -26,6 +26,7 @@
     "leaflet": "^1.7.1",
     "rxjs": "^7.5.1",
     "sirv-cli": "^1.0.0",
+    "svelte-commander": "^1.4.0",
     "svelte-icons-pack": "^1.4.6",
     "svelte-navigator": "^3.1.5",
     "uuid": "^8.3.2"

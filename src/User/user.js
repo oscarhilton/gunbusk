@@ -7,14 +7,14 @@ import { chatsList } from './chats';
 import { gun, user } from '../Gun/init-gun';
 export default class User {
 	constructor() {
-    this.alias = new Subject();
-    this.pub = new Subject();
+		this.alias = new Subject();
+		this.pub = new Subject();
 		/**
 		 * This contains a subscribable function that will return a boolean of whether or not the user is authenticated or not.
 		 */
 		this.isAuthenticated = new Subject();
 
-    this.videoStream = new Subject();
+		this.videoStream = new Subject();
 		this.location = new Subject();
 
 		// FRIENDS
@@ -24,26 +24,24 @@ export default class User {
 		// CHATS
 		this.chatsList = chatsList(gun);
 
-    this.init();
+		this.init();
 	}
 
 	init() {
 		gun.on("auth", () => this.isAuthenticated.next(true));
-    user.once(({ alias, pub, ...rest }) => {
+		user.once(({ alias, pub, ...rest }) => {
 			console.log({ alias, pub, ...rest });
 			this.alias.next(alias);
-      this.pub.next(pub);
+			this.pub.next(pub);
 		});
 
 		user.get("certificates").once((res) => console.log(res));
-  }
+	}
 
-  initVideo(pub, send, recieve) {
-    return this.videoStream.next(
-			new VideoStream(gun, pub, send, recieve)
-		);
-    // this.location.next(new LocationStream(gun, pub));
-  }
+	initVideo(pub, send, recieve) {
+		return this.videoStream.next(new VideoStream(gun, pub, send, recieve));
+		// this.location.next(new LocationStream(gun, pub));
+	}
 
 	/**
 	 * This function will check and see whether the user is authenticated or not.
@@ -53,27 +51,27 @@ export default class User {
 		else return this.isAuthenticated.next(false);
 	}
 
-  /**
-   * This function will authenticate a user who has registered.
-   *
-   * @param {Object} credentials The users authentication credentials that they used when registering.
-   * @param credentials.username
-   * @param credentials.password
-   *
-   * @param {Function} callback The callback function returns error messages or a success message.
-   */
-  loginUser(credentials = {}, callback = () => {}) {
-    user.auth(credentials.username, credentials.password, ({ err, pub }) => {
-      if (err) return callback({ errMessage: err, errCode: "gun-auth-error" });
-      else
-        return callback({
-          errMessage: undefined,
-          errCode: undefined,
-          pub,
-          message: "Successfully authenticated user."
-        });
-    });
-  };
+	/**
+	 * This function will authenticate a user who has registered.
+	 *
+	 * @param {Object} credentials The users authentication credentials that they used when registering.
+	 * @param credentials.username
+	 * @param credentials.password
+	 *
+	 * @param {Function} callback The callback function returns error messages or a success message.
+	 */
+	loginUser(credentials = {}, callback = () => {}) {
+		user.auth(credentials.username, credentials.password, ({ err, pub }) => {
+			if (err) return callback({ errMessage: err, errCode: "gun-auth-error" });
+			else
+				return callback({
+					errMessage: undefined,
+					errCode: undefined,
+					pub,
+					message: "Successfully authenticated user."
+				});
+		});
+	}
 
 	/**
 	 * This function will create a user.
@@ -109,7 +107,7 @@ export default class User {
 				);
 			}
 		})();
-	};
+	}
 
 	/**
 	 * This function will check to see if the email is already in use.
@@ -126,7 +124,7 @@ export default class User {
 	logout() {
 		gun.user().leave();
 		isAuthenticated.next(false);
-	};
+	}
 
 	async generateFriendRequestsCertificate(callback = () => {}) {
 		let certificateExists = await gun
@@ -409,6 +407,7 @@ export default class User {
 			.get("chats")
 			.get(publicKey)
 			.once(async (chatExists) => {
+				console.log(chatExists);
 				if (chatExists) {
 					return callback({
 						errMessage: "The chat already exists. Opening it now.",
@@ -584,109 +583,123 @@ export default class User {
 				});
 		});
 
-  sendMessage(roomId, publicKey, message, callback = () => {}) {
-    (async (callback = () => {}) => {
-      let userPub = await gun.user().pair().pub;
-      let userPair = await gun.user()._.sea;
-      let friend = await gun.user(publicKey);
+	async checkChatCertificate(publicKey, userPub, callback = () => {}) {
+		let createMessagesCertificate = await gun
+			.user(publicKey)
+			.get("certificates")
+			.get(userPub)
+			.get("messages");
 
-      if (!userPub)
-        return callback({
-          errMessage: "Could not find pub.",
-          errCode: "failed-to-find-pub",
-          success: undefined,
-        });
+		console.log(createMessagesCertificate);
 
-      let createMessagesCertificate = await gun
-        .user(publicKey)
-        .get("certificates")
-        .get(userPub)
-        .get("messages");
+		return callback({
+			success: !!createMessagesCertificate
+		});
+	}
 
-      if (!createMessagesCertificate)
-        return callback({
-          errMessage: "Could not find friend certificate to create message",
-          errCode: "failed-to-find-friend-messages-certificate",
-          success: undefined,
-        });
+	sendMessage(roomId, publicKey, message, callback = () => {}) {
+		(async (callback = () => {}) => {
+			let userPub = await gun.user().pair().pub;
+			let userPair = await gun.user()._.sea;
+			let friend = await gun.user(publicKey);
 
-      let updateMetaCertificate = await gun
-        .user(publicKey)
-        .get("certificates")
-        .get(userPub)
-        .get("chats");
+			if (!userPub)
+				return callback({
+					errMessage: "Could not find pub.",
+					errCode: "failed-to-find-pub",
+					success: undefined
+				});
 
-      if (!updateMetaCertificate)
-        return callback({
-          errMessage: "Could not find friend certificate to add meta to chat",
-          errCode: "failed-to-find-friend-chats-certificate",
-          success: undefined,
-        });
+			let createMessagesCertificate = await gun
+				.user(publicKey)
+				.get("certificates")
+				.get(userPub)
+				.get("messages");
 
-      let messageId = v4();
-      let timeSent = Date.now();
+			if (!createMessagesCertificate)
+				return callback({
+					errMessage: "Could not find friend certificate to create message",
+					errCode: "failed-to-find-friend-messages-certificate",
+					success: undefined
+				});
 
-      let secret = await SEA.secret(friend.epub, userPair);
-      let encryptedMessage = await SEA.encrypt(
-        JSON.stringify({
-          id: messageId,
-          content: message,
-          timeSent,
-          sender: userPub,
-          type: "text",
-        }),
-        secret
-      );
+			let updateMetaCertificate = await gun
+				.user(publicKey)
+				.get("certificates")
+				.get(userPub)
+				.get("chats");
 
-      gun
-        .user()
-        .get("chats")
-        .get(roomId)
-        .get("latestMessage")
-        .put(encryptedMessage);
+			if (!updateMetaCertificate)
+				return callback({
+					errMessage: "Could not find friend certificate to add meta to chat",
+					errCode: "failed-to-find-friend-chats-certificate",
+					success: undefined
+				});
 
-      gun
-        .user(publicKey)
-        .get("chats")
-        .get(roomId)
-        .get("latestMessage")
-        .put(encryptedMessage, null, { opt: { cert: updateMetaCertificate } });
+			let messageId = v4();
+			let timeSent = Date.now();
 
-      gun
-        .user()
-        .get("messages")
-        .get(roomId)
-        .set(encryptedMessage, ({ err }) => {
-          if (err)
-            return callback({
-              errMessage: err,
-              errCode: "message-creation-error",
-              success: undefined,
-            });
-          else
-            gun
-              .user(publicKey)
-              .get("messages")
-              .get(roomId)
-              .set(
-                encryptedMessage,
-                ({ err }) => {
-                  if (err)
-                    return callback({
-                      errMessage: err,
-                      errCode: "message-creation-error",
-                      success: undefined,
-                    });
-                  else
-                    return callback({
-                      errMessage: undefined,
-                      errCode: undefined,
-                      success: "Created a message with friend.",
-                    });
-                },
-                { opt: { cert: createMessagesCertificate } }
-              );
-        });
-    })(callback);
-  };
+			let secret = await SEA.secret(friend.epub, userPair);
+			let encryptedMessage = await SEA.encrypt(
+				JSON.stringify({
+					id: messageId,
+					content: message,
+					timeSent,
+					sender: userPub,
+					type: "text"
+				}),
+				secret
+			);
+
+			gun
+				.user()
+				.get("chats")
+				.get(roomId)
+				.get("latestMessage")
+				.put(encryptedMessage);
+
+			gun
+				.user(publicKey)
+				.get("chats")
+				.get(roomId)
+				.get("latestMessage")
+				.put(encryptedMessage, null, { opt: { cert: updateMetaCertificate } });
+
+			gun
+				.user()
+				.get("messages")
+				.get(roomId)
+				.set(encryptedMessage, ({ err }) => {
+					if (err)
+						return callback({
+							errMessage: err,
+							errCode: "message-creation-error",
+							success: undefined
+						});
+					else
+						gun
+							.user(publicKey)
+							.get("messages")
+							.get(roomId)
+							.set(
+								encryptedMessage,
+								({ err }) => {
+									if (err)
+										return callback({
+											errMessage: err,
+											errCode: "message-creation-error",
+											success: undefined
+										});
+									else
+										return callback({
+											errMessage: undefined,
+											errCode: undefined,
+											success: "Created a message with friend."
+										});
+								},
+								{ opt: { cert: createMessagesCertificate } }
+							);
+				});
+		})(callback);
+	}
 }
