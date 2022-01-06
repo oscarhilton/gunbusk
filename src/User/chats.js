@@ -1,6 +1,7 @@
+import { gun } from '../Gun/init-gun';
 import { Observable } from "rxjs";
 
-export const chatsList = (gun) =>
+export const chatsList = () =>
 	new Observable((subscriber) => {
 		gun
 			.user()
@@ -21,3 +22,7 @@ export const chatsList = (gun) =>
 				}
 			});
 	});
+
+export const chatDialogue = async (roomId, callback = () => {}) => {
+	await gun.user().get("messages").get(roomId).on(foo => callback(foo));
+}

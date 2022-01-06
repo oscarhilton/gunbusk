@@ -2,7 +2,7 @@ import LocationStream from "../LocationStreaming/index";
 import VideoStream from '../VideoStreaming/new-stream';
 import { Subject, Observable } from "rxjs";
 import { v4 } from "uuid";
-import { friendRequests, friendsList } from "./friends";
+import { friendRequests, friendsList, certificates } from "./friends";
 import { chatsList } from './chats';
 import { gun, user } from '../Gun/init-gun';
 export default class User {
@@ -23,6 +23,8 @@ export default class User {
 
 		// CHATS
 		this.chatsList = chatsList(gun);
+
+		this.certificates = certificates(gun).subscribe(foo => console.log(foo));
 
 		this.init();
 	}
@@ -287,8 +289,6 @@ export default class User {
 			.get("certificates")
 			.get("friendRequests");
 
-		console.log(addFriendRequestCertificate, "CERT");
-
 		gun
 			.user(publicKey)
 			.get("friendRequests")
@@ -508,6 +508,8 @@ export default class User {
 			let userPair = await gun.user()._.sea;
 			let friend = await gun.user(pub);
 
+			console.log("here")
+
 			gun
 				.user()
 				.get("messages")
@@ -536,7 +538,7 @@ export default class User {
 										(current) => current.id === individual.id
 									)[0] !== undefined;
 
-								console.log(exists);
+								console.log(exists, 'exists');
 
 								if (!exists) initial.push(individual);
 							}
@@ -560,6 +562,11 @@ export default class User {
 										decryptSecretFriend
 									);
 
+									console.log(
+										decryptSecretFriend, decryptedMessageFriend,
+										"decryptedMessageFriend"
+									);
+
 									if (decryptedMessageFriend) {
 										let individual = {
 											...decryptedMessageFriend,
@@ -572,6 +579,7 @@ export default class User {
 											)[0] !== undefined;
 
 										if (!exists)
+												console.log("LETS GO")
 											return subscriber.next({
 												initial: undefined,
 												individual
@@ -590,8 +598,6 @@ export default class User {
 			.get(userPub)
 			.get("messages");
 
-		console.log(createMessagesCertificate);
-
 		return callback({
 			success: !!createMessagesCertificate
 		});
@@ -602,6 +608,8 @@ export default class User {
 			let userPub = await gun.user().pair().pub;
 			let userPair = await gun.user()._.sea;
 			let friend = await gun.user(publicKey);
+
+			console.log(roomId, publicKey, message, "****");
 
 			if (!userPub)
 				return callback({
@@ -694,7 +702,7 @@ export default class User {
 										return callback({
 											errMessage: undefined,
 											errCode: undefined,
-											success: "Created a message with friend."
+											success: `Created a message with friend. - ${encryptedMessage}`
 										});
 								},
 								{ opt: { cert: createMessagesCertificate } }

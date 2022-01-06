@@ -1,4 +1,8 @@
+import { SEA } from "gun/gun";
 import { Observable } from "rxjs";
+
+export const certificates = (gun) => new Observable((subscriber) => {
+});
 
 export const friendRequests = (gun) =>
 	new Observable((subscriber) => {

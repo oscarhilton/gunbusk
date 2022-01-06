@@ -1,12 +1,13 @@
 <script>
   export let message;
-  export let time = 'a moment ago'
-  export let isClient = Math.random() > 0.4;
+  export let time;
+  export let isClient;
+  export let name;
 </script>
 
 <div class="container">
   <div class="stats">
-    <span class="time">{time}</span>  <span class="name">{isClient ? "bob" : "alice"}</span>
+    <span class="time">{time}</span>  <span class="name">{name}</span>
   </div>
   <div class="aligner aligner--{isClient ? 'client' : 'other'}">
     <div class="message message--{isClient ? 'client' : 'other'}">

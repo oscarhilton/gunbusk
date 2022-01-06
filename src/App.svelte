@@ -8,10 +8,12 @@
 	import Contract from './Contract.svelte';
 	import ChatRoom from './ChatRoom.svelte';
 	import FriendsList from './FriendsList.svelte'; 
+	import Gravatar from 'svelte-gravatar'
 
 	// Icons
 	import Icon from 'svelte-icons-pack/Icon.svelte';
   import ImFilm from 'svelte-icons-pack/im/ImFilm';
+	import ImKey from 'svelte-icons-pack/im/ImKey';
 
 	export let client;
 	export let user;
@@ -64,9 +66,6 @@
 		console.log(chatReady)
 		await client.createMessagesCertificate(pub);
 		await client.checkChatCertificate(pub, user.is.pub, ({ success }) => {
-			console.log("SUCCESS?", success)
-			chatReady = !!success
-
 			client.createChat(pub, ({ success, ...rest }) => {
 				if (!success) return console.log(rest);
 				console.log("going to chat!")
@@ -78,16 +77,25 @@
 </script>
 
 <Router url="{url}">
-  <footer class="navigation">
-		<h1>Hello! {alias}!</h1>
-		<span>{pub}</span>
-    <nav>
+  <header class="navigation">
+		<div class="user">
+			{#if pub}
+				<div class="keys">
+					<div class='icon'>
+						<Icon src={ImKey} size="1em" />
+					</div>
+					<Gravatar email={pub} default="identicon" />
+				</div>
+				 {alias}
+			{/if}
+		</div>
+    <!-- <nav>
       <Link to="/"><Icon src={ImFilm} size="2em" /></Link>
       <Link to="login"><Icon src={ImFilm} size="2em" /></Link>
       <Link to="stream"><Icon src={ImFilm} size="2em" /></Link>
       <Link to="chat"><Icon src={ImFilm} size="2em" /></Link>
-    </nav>
-  </footer>
+    </nav> -->
+  </header>
 
   <main style="height: calc(100% - 50px)">
 		<aside>
@@ -115,7 +123,7 @@
 			</Route>
 
 			<Route path='chat'>
-				<ChatRoom chatReady={chatReady} chatsList={client.chatsList} sendMessage={client.sendMessage} />
+				<ChatRoom chatReady={chatReady} chatsList={client.chatsList} sendMessage={client.sendMessage} messageList={client.messageList} />
 			</Route>
 		</section>
 		<!-- <aside>
@@ -147,6 +155,44 @@
 	section {
 		width: 100%;
 	}
+
+	.user {
+		display: flex;
+		align-items: center;
+	}
+
+	.keys {
+		position: relative;
+		margin-right: 30px;
+		border-radius: 50%;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.keys:hover > .icon {
+		opacity: 1;
+	}
+
+	.icon {
+		position: absolute;
+		width: 30px;
+		height: 30px;
+		margin: auto;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		background: white;
+		z-index: 1;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+	}
+
 	.navigation {
 	}
 </style>

@@ -1,9 +1,14 @@
 <script>
+  import { gun } from './Gun/init-gun';
   import ChatFeedMessage from './ChatFeedMessage.svelte';
   import ChatBubble from './ChatBubble.svelte';
+  import { user } from './Gun/init-gun'
+
+  import { chatDialogue } from './User/chats';
 
   export let chatReady = false;
   export let chatsList;
+  export let messageList;
   export let sendMessage;
 
   console.log("CHAT READY?", chatReady);
@@ -11,18 +16,34 @@
   let latestMessage;
   let publicKey;
   let roomId;
-  let message = new Date();
+  let message = `HELLO WORLD !!! ${new Date()}`;
+
+  let messages = {}
 
   chatsList.subscribe(({ latestMessage: l, pub: p, roomId: i }) => {
     latestMessage = l;
     publicKey = p;
     roomId = i;
+    messageList(i, p).subscribe(message => {
+      console.log(message, "MESSAGE");
+      if (!message) return;
+
+      const { content, id, sender, timeSent, type } = message.individual;
+      const obj = { [timeSent]: { id, content, id, sender, timeSent, type } };
+      Object.assign(messages, obj);
+      messages = { ...messages, obj };
+    });
+    chatReady = true;
   });
+
+
+  chatDialogue(roomId, foo => console.log(foo));
 
   const sendNewMessage = (e) => {
     e.preventDefault();
+    console.log(message, publicKey, roomId)
     if (!roomId || !publicKey || !message) return;
-    sendMessage(roomId, publicKey, message, res => console.log(res));
+    sendMessage(roomId, publicKey, message, res => console.log(res, "message result"));
   }
 </script>
 
@@ -150,18 +171,10 @@
 
       <p>Bob hasn't accepted the chat yet</p>
     {/if}
-    <!-- <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
     <ChatFeedMessage />
-    <ChatBubble message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque id nisl sit amet ligula ornare blandit in luctus nibh. Curabitur venenatis elit odio, in sagittis quam ornare id. Vestibulum ultricies ultricies augue, et lacinia dui tincidunt et. Praesent bibendum orci odio, et scelerisque odio placerat vel. Nulla varius urna sodales lectus consequat, nec eleifend nulla dapibus. Nam purus enim, eleifend sit amet vulputate non, dictum et risus. Suspendisse enim nisi, fermentum sed ullamcorper eget, efficitur in libero. Cras posuere sed lacus non semper. Pellentesque lacinia nibh sit amet est pretium fringilla. Cras arcu ante, feugiat non gravida non, finibus eu urna.' />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" />
-    <ChatBubble message="Hello world!" /> -->
+    {#each Object.values(messages) as { content, timeSent, sender, type, id }}
+      <ChatBubble message={content} time={timeSent} isClient={sender === user.is.pub } name={sender} id={id} type={type} />
+    {/each}
   </div>
   <div>
     <div class='text-box'>
@@ -184,6 +197,7 @@
   .chat-window {
     height: 100%;
     overflow-y: auto;
+    max-width: 1500px;
   }
 
   .chat-window--waiting {
