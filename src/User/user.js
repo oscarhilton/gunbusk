@@ -24,7 +24,7 @@ export default class User {
 		// CHATS
 		this.chatsList = chatsList(gun);
 
-		this.certificates = certificates(gun).subscribe(foo => console.log(foo));
+		this.certificates = certificates(gun).subscribe((foo) => console.log(foo));
 
 		this.init();
 	}
@@ -164,6 +164,41 @@ export default class User {
 					});
 			});
 	}
+
+	getProfilePage = async (userPublicKey, callback = () => {}) => {
+		console.log(userPublicKey, "pub!");
+		const page = await gun.get('public').get("profiles").get(userPublicKey).get('page').once(thing => console.log(thing, 'thing'))
+
+		callback({
+			errMessage: undefined,
+			errCode: undefined,
+			json: JSON.parse(page),
+			success: "Profile retreived!"
+		});
+	};
+
+	updateProfilePage = (userPublicKey, rawJSON, callback = () => {}) => {
+		gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("page")
+			.put(rawJSON, ({ err }) => {
+				if (err)
+					return callback({
+						errMessage: err,
+						errCode: "update-profile-error",
+						success: undefined
+					});
+				else
+					return callback({
+						errMessage: undefined,
+						errCode: undefined,
+						json: rawJSON,
+						success: "Profile updated!"
+					});
+			});
+	};
 
 	async generateAddFriendCertificate(publicKey, callback = () => {}) {
 		let certificateExists = await gun
@@ -508,7 +543,7 @@ export default class User {
 			let userPair = await gun.user()._.sea;
 			let friend = await gun.user(pub);
 
-			console.log("here")
+			console.log("here");
 
 			gun
 				.user()
@@ -538,7 +573,7 @@ export default class User {
 										(current) => current.id === individual.id
 									)[0] !== undefined;
 
-								console.log(exists, 'exists');
+								console.log(exists, "exists");
 
 								if (!exists) initial.push(individual);
 							}
@@ -562,11 +597,6 @@ export default class User {
 										decryptSecretFriend
 									);
 
-									console.log(
-										decryptSecretFriend, decryptedMessageFriend,
-										"decryptedMessageFriend"
-									);
-
 									if (decryptedMessageFriend) {
 										let individual = {
 											...decryptedMessageFriend,
@@ -578,12 +608,11 @@ export default class User {
 												(current) => current.id === individual.id
 											)[0] !== undefined;
 
-										if (!exists)
-												console.log("LETS GO")
-											return subscriber.next({
-												initial: undefined,
-												individual
-											});
+										if (!exists) console.log("LETS GO");
+										return subscriber.next({
+											initial: undefined,
+											individual
+										});
 									}
 								}
 							});

@@ -1,13 +1,25 @@
 <script>
+  import { gun } from './Gun/init-gun';
+  import moment from 'moment';
+
   export let message;
   export let time;
   export let isClient;
-  export let name;
+  export let name = 'Anon';
+
+  let alias;
+
+  (async () => {
+    const user = await gun.user(name).then();
+    if (!user) return;
+    alias = user.alias;
+  })();
+
 </script>
 
 <div class="container">
   <div class="stats">
-    <span class="time">{time}</span>  <span class="name">{name}</span>
+    <span class="time">{moment(time).fromNow()}</span>  <span class="name">{alias || name}</span>
   </div>
   <div class="aligner aligner--{isClient ? 'client' : 'other'}">
     <div class="message message--{isClient ? 'client' : 'other'}">
@@ -65,14 +77,14 @@
   }
 
   .message {
-    padding: 15px 20px 14px;
+    padding: 10px 15px 9px;
     background: #F2C85B;
     /* box-shadow: -3px 3px 5px rgba(0, 0, 0, 0.2); */
     border-radius: 20px 20px 20px 3px;
     color: #111111;
     display: block;
     line-height: 1.6;
-    font-size: 14px;
+    font-size: 13px;
     max-width: 400px;
     margin: 5px 0;
   }

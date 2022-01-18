@@ -1,13 +1,14 @@
 <script>
   export let alias;
   export let pub;
+  export let key;
   export let action;
   export let actionText;
 </script>
 
 <div class="user-tab">
   {alias}
-  <button on:click={() => action(pub)}>{actionText}</button>
+  <button on:click={() => action(pub, key)}>{actionText}</button>
 </div>
 
 <style>

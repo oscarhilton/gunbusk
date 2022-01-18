@@ -12,7 +12,7 @@
   {#if friendsList}
     {#each Object.keys(friendsList) as friend}
       {#if friend && !Object.keys(excludeFrom).includes(friend)}
-        <UserTab alias={friendsList[friend].alias} pub={friendsList[friend].pub} action={action} actionText={actionText} />
+        <UserTab alias={friendsList[friend].alias} pub={friendsList[friend].pub} key={friendsList[friend].key} action={action} actionText={actionText} />
       {/if}
     {/each}
   {/if}

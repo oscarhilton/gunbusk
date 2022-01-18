@@ -1,11 +1,9 @@
+import { gun, user } from '../Gun/init-gun';
 export default class LocationStream {
-	constructor(gun, streamId) {
-		this.gunDB = gun;
+	constructor() {
 		this.latitude = null;
 		this.longitude = null;
 		this.debug = true;
-		this.streamId = streamId;
-		this.dbRecord = 'location';
 	}
 
 	getLocation(callback) {
@@ -16,10 +14,8 @@ export default class LocationStream {
 			return;
 		}
     window.navigator.geolocation.getCurrentPosition(({ coords }) => {
-      console.log(coords, "*****");
       this.latitude = coords.latitude;
       this.longitude = coords.longitude;
-      this.submitToGun(coords);
       callback({ lat: coords.latitude, lng: coords.longitude });
       }, this.showError);
 	}
@@ -27,52 +23,12 @@ export default class LocationStream {
 	clearLocation() {
 		this.latitude = null;
 		this.longitude = null;
-		this.submitToGun(null, null);
 	}
 
 	debugLog(logData) {
 		if (this.debug) {
 			console.log(logData);
 		}
-	}
-
-	submitToGun({
-    lat,
-    long,
-    accuracy,
-    altitude,
-    altitudeAccuracy,
-    latitude,
-    longitude,
-    speed,
-  }) {
-		this.debugLog(
-			"Write to GUN:: " + this.streamId,
-			lat,
-			long,
-			accuracy,
-			altitude,
-			altitudeAccuracy,
-			latitude,
-			longitude,
-			speed
-		);
-		let lastUpdate = new Date().getTime();
-
-		const user = this.gunDB.get(this.streamId).put({
-			id: this.streamId,
-			timestamp: lastUpdate,
-			lat,
-			long,
-			accuracy,
-			altitude,
-			altitudeAccuracy,
-			latitude,
-			longitude,
-			speed
-		});
-
-		this.gunDB.get(this.dbRecord).set(user);
 	}
 
 	showError(error) {

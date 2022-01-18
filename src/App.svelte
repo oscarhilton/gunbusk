@@ -1,6 +1,8 @@
 <script>
 	import { Router, Route, Link, navigate } from "svelte-navigator";
 	import { fade } from 'svelte/transition';
+	import Gravatar from 'svelte-gravatar'
+
 
 	import LiveStream from './LiveStream.svelte';
 	import LoginFrom from './LoginForm.svelte';
@@ -8,7 +10,8 @@
 	import Contract from './Contract.svelte';
 	import ChatRoom from './ChatRoom.svelte';
 	import FriendsList from './FriendsList.svelte'; 
-	import Gravatar from 'svelte-gravatar'
+	import Explore from './Explore.svelte';
+	import Profile from './Profile.svelte';
 
 	// Icons
 	import Icon from 'svelte-icons-pack/Icon.svelte';
@@ -54,8 +57,10 @@
 		}
 	});
 
-	const acceptFriendRequest = (pub) => {
-		client.acceptFriendRequest({ key: fr.key, publicKey: fr.pub });
+	console.log(client)
+
+	const acceptFriendRequest = (pub, key) => {
+		client.acceptFriendRequest({ key: key, publicKey: pub });
 	}
 
 	let chatReady = false;
@@ -63,15 +68,12 @@
 		await client.createChatsCertificate(pub, ({ success: gotCert, ...rest }) => {
 			if (!gotCert) return console.log(rest);
 		})
-		console.log(chatReady)
 		await client.createMessagesCertificate(pub);
-		await client.checkChatCertificate(pub, user.is.pub, ({ success }) => {
-			client.createChat(pub, ({ success, ...rest }) => {
-				if (!success) return console.log(rest);
-				console.log("going to chat!")
-				return navigate('/chat')
-			})
-		});
+		client.createChat(pub, ({ success, ...rest }) => {
+			if (!success) return console.log(rest);
+			console.log("going to chat!")
+			return navigate('/chat')
+		})
 	}
 
 </script>
@@ -80,38 +82,43 @@
   <header class="navigation">
 		<div class="user">
 			{#if pub}
-				<div class="keys">
-					<div class='icon'>
-						<Icon src={ImKey} size="1em" />
+					<div class="keys">
+						<div class='icon'>
+							<button>
+								<Icon src={ImKey} size="1em" />
+							</button>
+						</div>
+						<Gravatar email={pub} default="identicon" />
 					</div>
-					<Gravatar email={pub} default="identicon" />
-				</div>
-				 {alias}
+					<!-- {alias} -->
+					<!-- {pub} -->
 			{/if}
 		</div>
-    <!-- <nav>
-      <Link to="/"><Icon src={ImFilm} size="2em" /></Link>
-      <Link to="login"><Icon src={ImFilm} size="2em" /></Link>
-      <Link to="stream"><Icon src={ImFilm} size="2em" /></Link>
-      <Link to="chat"><Icon src={ImFilm} size="2em" /></Link>
-    </nav> -->
+    <nav>
+      <Link to="/">home</Link>
+      <Link to="login">login</Link>
+			{#if pub}
+				<Link to="stream">stream</Link>
+				<Link to="chat">chat</Link>
+				<Link to="explore">explore</Link>
+				<Link to="profile">profile</Link>
+			{/if}
+    </nav>
   </header>
 
   <main style="height: calc(100% - 50px)">
-		<aside>
+		<!-- <aside>
 				<FriendsList friendsList={fr} excludeFrom={{}} action={acceptFriendRequest} actionText="accept" />
 				<FriendsList friendsList={fl} excludeFrom={fr} action={startChat} actionText="Chat now!" />
-		</aside>
+		</aside> -->
 		<section>
-			<Route path="/">
+			<Route path="login">
 				<div transition:fade={{ duration: 250 }} style="height: 100%">
-					{#if isAuthed && alias }
-					Hello world!
-					{:else}
-					<h3>Login</h3>
-					<LoginFrom onSubmit={login} />
-					<h3>Register</h3>
-					<LoginFrom onSubmit={register} />
+					{#if !isAuthed || !alias }
+						<h3>Login</h3>
+						<LoginFrom onSubmit={login} />
+						<h3>Register</h3>
+						<LoginFrom onSubmit={register} />
 					{/if}
 				</div>
 			</Route>
@@ -125,6 +132,14 @@
 			<Route path='chat'>
 				<ChatRoom chatReady={chatReady} chatsList={client.chatsList} sendMessage={client.sendMessage} messageList={client.messageList} />
 			</Route>
+
+			<Route path='explore'>
+				<Explore chatReady={chatReady} chatsList={client.chatsList} sendMessage={client.sendMessage} messageList={client.messageList} />
+			</Route>
+
+			<Route path='profile'>
+				<Profile client={client} publicKey={pub} />
+			</Route>
 		</section>
 		<!-- <aside>
 			<Contract sender="User" onSign={acceptFriendRequest} />
@@ -137,9 +152,14 @@
 	:global(body) {
 		padding: 0;
 		margin: 0;
-		background: #f6f6f6;
 		color: #212121;
 		min-height: 100vh;
+		font-family: 'Work Sans', sans-serif;
+		/* background: #212121; */
+	}
+
+	:global(h1) {
+		font-size: 3em;
 	}
 
 	main {
@@ -149,7 +169,14 @@
 	aside {
 		min-width: 250px;
 		max-width: 250px;
-		background: rgba(255, 255, 255, 0.1);
+	}
+
+	.logo {
+		width: 100px;
+	}
+
+	.logo > svg {
+		width: 100%;
 	}
 
 	section {
@@ -163,8 +190,7 @@
 
 	.keys {
 		position: relative;
-		margin-right: 30px;
-		border-radius: 50%;
+		margin-right: 20px;
 		overflow: hidden;
 		display: flex;
 		align-items: center;
