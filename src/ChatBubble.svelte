@@ -1,5 +1,5 @@
 <script>
-  import { gun } from './Gun/init-gun';
+  import { gun } from './gun/init-gun';
   import moment from 'moment';
 
   export let message;

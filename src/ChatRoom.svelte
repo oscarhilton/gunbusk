@@ -1,5 +1,5 @@
 <script>
-  import { user } from './Gun/init-gun';
+  import { user } from './gun/init-gun';
   import ChatFeedMessage from './ChatFeedMessage.svelte';
   import ChatBubble from './ChatBubble.svelte';
 

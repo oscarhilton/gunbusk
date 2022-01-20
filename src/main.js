@@ -1,5 +1,5 @@
 import App from './App.svelte';
-import { gun, user } from './Gun/init-gun';
+import { gun, user } from './gun/init-gun';
 import User from './User';
 
 let client = new User();

@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-	import { recordState } from './VideoStreaming/gun-recorder';
+	import { recordState } from './video-streaming/gun-recorder';
 	import MediaQuery from './mediaQuery.svelte'
 
 	export let client;

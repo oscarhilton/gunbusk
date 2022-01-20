@@ -6,6 +6,10 @@ import "gun/lib/radix";
 import "gun/lib/radisk";
 import "gun/lib/store";
 import "gun/lib/rindexed";
+import "gun/lib/yson.js"
+import "gun/gun.js"
+import "gun/lib/dom.js"
+import "gun/lib/upload.js"
 
 let gun = new Gun({
 	peers: [GUN_SERVER_URI],

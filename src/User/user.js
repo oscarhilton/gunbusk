@@ -1,10 +1,10 @@
-import LocationStream from "../LocationStreaming/index";
-import VideoStream from '../VideoStreaming/new-stream';
+import LocationStream from ".././location-streaming/index";
+import VideoStream from '../video-streaming/new-stream';
 import { Subject, Observable } from "rxjs";
 import { v4 } from "uuid";
 import { friendRequests, friendsList, certificates } from "./friends";
 import { chatsList } from './chats';
-import { gun, user } from '../Gun/init-gun';
+import { gun, user } from '../gun/init-gun';
 export default class User {
 	constructor() {
 		this.alias = new Subject();
@@ -165,17 +165,88 @@ export default class User {
 			});
 	}
 
-	getProfilePage = async (userPublicKey, callback = () => {}) => {
-		console.log(userPublicKey, "pub!");
-		const page = await gun.get('public').get("profiles").get(userPublicKey).get('page').once(thing => console.log(thing, 'thing'))
+	getProfilePage = async (userPublicKey) => {
+		const page = await gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("page")
+			.once((r) => r);
 
-		callback({
+		return {
 			errMessage: undefined,
 			errCode: undefined,
 			json: JSON.parse(page),
 			success: "Profile retreived!"
-		});
+		};
 	};
+
+	addUploadToProfilePage = (userPublicKey, b64, callback = () => {}) => {
+		const newFile = JSON.stringify({
+			title: new Date(),
+			b64
+		});
+		gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("uploads")
+			.set(newFile, ({ err }) => {
+				if (err)
+					return callback({
+						errMessage: err,
+						errCode: "upload-profile-error",
+						success: undefined
+					});
+				else
+					return callback({
+						errMessage: undefined,
+						errCode: undefined,
+						file: newFile,
+						success: "File uploaded!"
+					});
+			});
+	};
+
+	deleteProfileUpload = async (userPublicKey, soul) => {
+		console.log("deleting ", soul);
+
+		const file = await gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("uploads")
+			.get(soul)
+			.put(null);
+
+		return {
+			file
+		};
+	};
+
+	getUploads = async (userPublicKey) => {
+		console.log("GETTING UPLOADS");
+		const uploads = await gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("uploads")
+			.once((r) => r);
+
+		console.log(uploads);
+
+		return {
+			errMessage: undefined,
+			errCode: undefined,
+			uploads: this.filterGunMap(uploads).map((k) => ({
+				...(uploads[k] ? JSON.parse(uploads[k]) : {}),
+				soul: k
+			})),
+			success: "Uploads retreived!"
+		};
+	};
+
+	filterGunMap = toFilter => Object.keys(toFilter).filter(key => key !== '_' && toFilter[key])
 
 	updateProfilePage = (userPublicKey, rawJSON, callback = () => {}) => {
 		gun
@@ -357,7 +428,6 @@ export default class User {
 	}
 
 	acceptFriendRequest({ key, publicKey }, callback = () => {}) {
-		console.log(key, publicKey);
 		gun
 			.user()
 			.get("friendRequests")
