@@ -1,8 +1,19 @@
 <script>
+  import { onMount } from 'svelte'
   import EventAction from './EventAction.svelte'
   import { blur } from 'svelte/transition'
   import Map from './Map.svelte'
   import Chat from './ChatRoom.svelte';
+
+  import Metaverse from './metaverse/index';
+
+  let container
+
+  onMount(async () => {
+    const metav = await new Metaverse(container, 100, 100).init();
+    console.log(metav, "<<");
+  })
+
 
   export let chatReady = false;
   export let chatsList;
@@ -22,16 +33,18 @@
     <!-- <div style="height: 100%; overflow-y: auto; border-radius:30px;overflow:hidden;margin:0 5px;">
       <Chat chatReady={chatReady} chatsList={chatsList} sendMessage={sendMessage} messageList={messageList} />
     </div> -->
-    <div class="container" style="height: 500px">
+    <!-- <div class="container" style="height: 500px">
       <Map />
-    </div>
+    </div> -->
     <!-- <div style="height: 100%; overflow-y: auto; border-radius:30px;margin:0 5px;"> -->
     <div class="container">
-        {#each [...Array(30).keys()] as i}
+      canvas
+        <div bind:this={container} style="width: 100%; height: 100vh; border: solid thin black; overflow: hidden"></div>
+        <!-- {#each [...Array(30).keys()] as i}
         <div transition:blur="{{amount: 10}}">
           <EventAction image={`https://picsum.photos/600/600?random=${i}`} title="Hello world" />
         </div>
-        {/each}
+        {/each} -->
     </div>
   </div>
 </div>

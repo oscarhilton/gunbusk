@@ -1,10 +1,12 @@
-import Konva from "konva";
-import { Subject } from "rxjs";
+import Konva from "konva"
+import { Subject } from "rxjs"
+import VisualLayer from "./VisualLayer"
+import Square from './Square'
 
 const WHITE = "#ffffff"
 const GREY = "#fafafa"
 
-export default class GridLayer {
+export default class GridLayer extends VisualLayer {
 	gridColors = [
 		[WHITE, GREY],
 		[GREY, WHITE]
@@ -13,10 +15,26 @@ export default class GridLayer {
 	width = 300;
 	height = 300;
 
-	layer = new Konva.Layer()
-  bounds = new Subject()
+	layer = new Konva.Layer();
+	bounds = new Subject();
+
+  constructor() {
+    super();
+
+    this.bounds.subscribe((bounds) => {   
+      this.layer.destroyChildren();
+      console.log("DESTROYED");
+      this.computeLayerShapes(bounds);
+      console.log("COMPUTING LAYER SHAPES")
+      this.layer.draw();
+      console.log("DRAWING")
+    })
+  }
 
 	checkBounds(stage) {
+
+    console.log("CHECKING BOUNDS")
+
 		const startX =
 			Math.floor((-stage.x() - stage.width()) / this.width) * this.width;
 		const endX =
@@ -27,26 +45,32 @@ export default class GridLayer {
 		const endY =
 			Math.floor((-stage.y() + stage.height() * 2) / this.height) * this.height;
 
-		this.bounds.next({ sx: startX, ex: endX, sy: startY, ey: endY });
+		this.bounds.next({ startX, endX, startY, endY });
 	}
 
-  computeLayerShapes() {
-    const { startX, endX, startY, endY } = this.checkBounds();
+	computeLayerShapes({ startX, endX, startY, endY }) {
+    console.log("COMPUTING LAYER SHAPES", { startX, endX, startY, endY });
+		for (var x = startX; x < endX; x += this.width) {
+			for (var y = startY; y < endY; y += this.height) {
+				const ix =
+					(x / this.width + this.gridColors.length * this.width) % this.gridColors.length;
 
-    for (var x = startX; x < endX; x += this.width) {
-      for (var y = startY; y < endY; y += this.height) {
-        const ix =
-					(x / this.width + gridColors.length * this.width) % gridColors.length;
+				const iy =
+					(y / this.height + this.gridColors[0].length * this.height) %
+					this.gridColors[0].length;
 
-        const iy = (y / this.height + gridColors[0].length * this.height) %
-					gridColors[0].length;
-      }
-    }
-  }
-
-	reDraw() {
-    this.layer.destroyChildren()
-    this.computeLayerShapes()
-    this.layer.draw()
-  }
+				const square = new Square(
+					x,
+					y,
+					this.width,
+					this.height,
+					this.gridColors[ix][iy]
+				);
+				this.layer.add(square.render());
+        console.log('added square at ', x, y)
+			}
+		}
+    console.log("EXITING")
+    return
+	}
 }
