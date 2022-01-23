@@ -173,10 +173,31 @@ export default class User {
 			.get("page")
 			.once((r) => r);
 
+		const fromJson = JSON.parse(page);
+		const payload = await fromJson.payload.reduce(async (array, curr) => {
+			if (!curr[6].uploadSoul) return [...await array, curr];
+			const upload = await this.getUpload(userPublicKey, curr[6].uploadSoul);
+
+			const newCurrSix = {
+				...curr[6],
+				upload
+			};
+
+			return [
+				...await array,
+				{
+					...curr,
+					[6]: newCurrSix
+				}
+			];
+		}, []);
+
+		console.log(payload, "<<<< !!")
+
 		return {
 			errMessage: undefined,
 			errCode: undefined,
-			json: JSON.parse(page),
+			json: payload,
 			success: "Profile retreived!"
 		};
 	};
@@ -224,24 +245,36 @@ export default class User {
 		};
 	};
 
+	getUpload = async (userPublicKey, soul) => {
+		const json = await gun
+			.get("public")
+			.get("profiles")
+			.get(userPublicKey)
+			.get("uploads")
+			.get(soul)
+			.once((r) => r);
+
+		return JSON.parse(json)
+	}
+
 	getUploads = async (userPublicKey) => {
-		console.log("GETTING UPLOADS");
-		const uploads = await gun
+		const uploadsFromGun = await gun
 			.get("public")
 			.get("profiles")
 			.get(userPublicKey)
 			.get("uploads")
 			.once((r) => r);
 
-		console.log(uploads);
+		const uploads = this.filterGunMap(uploadsFromGun)
+			.map((k) => ({
+				...(uploadsFromGun[k] ? JSON.parse(uploadsFromGun[k]) : {}),
+				soul: k
+			}))
 
 		return {
 			errMessage: undefined,
 			errCode: undefined,
-			uploads: this.filterGunMap(uploads).map((k) => ({
-				...(uploads[k] ? JSON.parse(uploads[k]) : {}),
-				soul: k
-			})),
+			uploads,
 			success: "Uploads retreived!"
 		};
 	};
