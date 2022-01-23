@@ -3,8 +3,8 @@ import { Subject } from "rxjs"
 import VisualLayer from "./VisualLayer"
 import Square from './Square'
 
-const WHITE = "#ffffff"
-const GREY = "#fafafa"
+const WHITE = "#212121";
+const GREY = "#222222"
 
 export default class GridLayer extends VisualLayer {
 	gridColors = [
@@ -67,6 +67,7 @@ export default class GridLayer extends VisualLayer {
 					this.gridColors[ix][iy]
 				);
 				this.layer.add(square.render());
+        this.layer.add(square.renderText());
         console.log('added square at ', x, y)
 			}
 		}

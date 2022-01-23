@@ -19,4 +19,12 @@ export default class Square {
       fill: this.fill
     })
   }
+
+  renderText() {
+    return new Konva.Text({
+			x: this.x,
+			y: this.y,
+			text: `${this.x}, ${this.y}`
+		});
+  }
 }
