@@ -1,16 +1,29 @@
 import Konva from 'konva';
-
+import { gun } from '../gun/init-gun'
 export default class Square {
   constructor(x, y, width, height, fill) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.fill = fill;
+    this.x = x
+    this.y = y
+    this.width = width
+    this.height = height
+    this.fill = fill
+    this.data = null
+  }
+
+  async getDataFromGun() {
+    console.log("Getting data for: ", this.x, this.y)
+    const square = await gun
+      .get("public")
+      .get("square")
+      .get(this.x)
+      .get(this.y)
+      .once(r => r)
+
+    this.data = square
+    console.log(this.data, "<<<")
   }
 
   render() {
-    console.log(this.x, this.y, this.fill, this.width, this.height);
     return new Konva.Rect({
       x: this.x,
       y: this.y,

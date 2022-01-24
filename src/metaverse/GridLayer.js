@@ -3,8 +3,8 @@ import { Subject } from "rxjs"
 import VisualLayer from "./VisualLayer"
 import Square from './Square'
 
-const WHITE = "#212121";
-const GREY = "#222222"
+const WHITE = "#f5f5f5";
+const GREY = "#ffffff"
 
 export default class GridLayer extends VisualLayer {
 	gridColors = [
@@ -18,22 +18,22 @@ export default class GridLayer extends VisualLayer {
 	layer = new Konva.Layer();
 	bounds = new Subject();
 
-  constructor() {
-    super();
+	constructor(startX, startY) {
+		super();
 
-    this.bounds.subscribe((bounds) => {   
-      this.layer.destroyChildren();
-      console.log("DESTROYED");
-      this.computeLayerShapes(bounds);
-      console.log("COMPUTING LAYER SHAPES")
-      this.layer.draw();
-      console.log("DRAWING")
-    })
-  }
+		this.startX = startX;
+		this.startY = startY;
+
+		this.bounds.subscribe(async (bounds) => {
+			this.layer.destroyChildren();
+			await this.computeLayerShapes(bounds);
+			this.layer.draw();
+			console.log("DRAWING");
+		});
+	}
 
 	checkBounds(stage) {
-
-    console.log("CHECKING BOUNDS")
+		console.log("CHECKING BOUNDS");
 
 		const startX =
 			Math.floor((-stage.x() - stage.width()) / this.width) * this.width;
@@ -45,19 +45,30 @@ export default class GridLayer extends VisualLayer {
 		const endY =
 			Math.floor((-stage.y() + stage.height() * 2) / this.height) * this.height;
 
-		this.bounds.next({ startX, endX, startY, endY });
+		console.log(stage.x(), stage.y());
+
+		this.bounds.next({
+			startX,
+			endX,
+			startY,
+			endY,
+			stageBoundX: stage.x() + stage.width(),
+			stageBoundY: stage.y() + stage.height()
+		});
 	}
 
-	computeLayerShapes({ startX, endX, startY, endY }) {
-    console.log("COMPUTING LAYER SHAPES", { startX, endX, startY, endY });
+	async computeLayerShapes({ startX, endX, startY, endY, stageBoundX, stageBoundY }) {
 		for (var x = startX; x < endX; x += this.width) {
 			for (var y = startY; y < endY; y += this.height) {
 				const ix =
-					(x / this.width + this.gridColors.length * this.width) % this.gridColors.length;
+					((x / this.width + this.gridColors.length * this.width) + this.startX) %
+					this.gridColors.length;
 
 				const iy =
-					(y / this.height + this.gridColors[0].length * this.height) %
+					((y / this.height + this.gridColors[0].length * this.height) + this.startY) %
 					this.gridColors[0].length;
+
+					console.log(x, y, "<<<<<<")
 
 				const square = new Square(
 					x,
@@ -66,12 +77,14 @@ export default class GridLayer extends VisualLayer {
 					this.height,
 					this.gridColors[ix][iy]
 				);
+
+				// if(x > stageBoundX && y < stageBoundY) {
+				// 	await square.getDataFromGun()
+				// }
 				this.layer.add(square.render());
-        this.layer.add(square.renderText());
-        console.log('added square at ', x, y)
+				this.layer.add(square.renderText());
 			}
 		}
-    console.log("EXITING")
-    return
+		return;
 	}
 }

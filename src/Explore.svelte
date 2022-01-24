@@ -10,7 +10,7 @@
   let container
 
   onMount(async () => {
-    const metav = await new Metaverse(container, 100, 100).init();
+    const metav = await new Metaverse(container, 100000000, 100000000).init();
     console.log(metav, "<<");
   })
 

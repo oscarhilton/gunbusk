@@ -11,16 +11,14 @@ export default class Metaverse {
 			width: window.innerWidth,
 			height: window.innerHeight,
 			draggable: true,
-			x: 0,
-			y: 0
+			x: -startLat,
+			y: -startLng,
 		});
-
-    console.log(this.stage)
 
 		this.layers = [];
 		this.images = [];
 
-		this.grid = new GridLayer();
+		this.grid = new GridLayer(this.startLat, this.startLng);
 		// this.mouse = new MouseLayer();
 	}
 
@@ -45,6 +43,11 @@ export default class Metaverse {
 		return Promise.all(this.images.map(imageIsLoaded));
 	}
 
+  handleNewBounds({ startX, endX, startY, endY }) {
+    // console.log((startX) / this.stage.width());
+    // console.log((endY) / this.stage.height());
+  }
+
 	async init() {
     console.log("INITING !")
 
@@ -52,6 +55,11 @@ export default class Metaverse {
 
     console.log("CHECKING BOUNDS")
     this.grid.checkBounds(this.stage);
+
+    // Handle grid bounds change
+    this.grid.bounds.subscribe(this.handleNewBounds.bind(this))
+
+
     this.layers.push(this.grid);
     // this.layers.add(this.mouse);
 
