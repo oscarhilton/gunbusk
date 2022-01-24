@@ -2,16 +2,24 @@ import Konva from 'konva';
 import { gun } from '../gun/init-gun'
 export default class Square {
   constructor(x, y, width, height, fill) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
-    this.fill = fill
-    this.data = null
+    this.rect = new Konva.Rect({
+			x,
+			y,
+			width,
+			height,
+			fill,
+		});
+
+    this.text = new Konva.Text({
+			x,
+			y,
+			text: `${x}, ${y}`
+		});
   }
 
   async getDataFromGun() {
-    console.log("Getting data for: ", this.x, this.y)
+    const before = this.rect.fill()
+    this.rect.fill('red')
     const square = await gun
       .get("public")
       .get("square")
@@ -20,24 +28,6 @@ export default class Square {
       .once(r => r)
 
     this.data = square
-    console.log(this.data, "<<<")
-  }
-
-  render() {
-    return new Konva.Rect({
-      x: this.x,
-      y: this.y,
-      width: this.width,
-      height: this.height,
-      fill: this.fill
-    })
-  }
-
-  renderText() {
-    return new Konva.Text({
-			x: this.x,
-			y: this.y,
-			text: `${this.x}, ${this.y}`
-		});
+    this.rect.fill(before)
   }
 }

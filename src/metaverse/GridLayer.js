@@ -33,8 +33,6 @@ export default class GridLayer extends VisualLayer {
 	}
 
 	checkBounds(stage) {
-		console.log("CHECKING BOUNDS");
-
 		const startX =
 			Math.floor((-stage.x() - stage.width()) / this.width) * this.width;
 		const endX =
@@ -45,30 +43,40 @@ export default class GridLayer extends VisualLayer {
 		const endY =
 			Math.floor((-stage.y() + stage.height() * 2) / this.height) * this.height;
 
-		console.log(stage.x(), stage.y());
+		console.log(stage.absolutePosition(), "stage")
 
 		this.bounds.next({
 			startX,
 			endX,
 			startY,
 			endY,
-			stageBoundX: stage.x() + stage.width(),
-			stageBoundY: stage.y() + stage.height()
+			stage: {
+				x: -stage.x(),
+				w: stage.width(),
+				y: -stage.y(),
+				h: stage.height()
+			}
 		});
 	}
 
-	async computeLayerShapes({ startX, endX, startY, endY, stageBoundX, stageBoundY }) {
+	async computeLayerShapes({
+		startX,
+		endX,
+		startY,
+		endY,
+		stage
+	}) {
 		for (var x = startX; x < endX; x += this.width) {
 			for (var y = startY; y < endY; y += this.height) {
 				const ix =
-					((x / this.width + this.gridColors.length * this.width) + this.startX) %
+					(x / this.width + this.gridColors.length * this.width + this.startX) %
 					this.gridColors.length;
 
 				const iy =
-					((y / this.height + this.gridColors[0].length * this.height) + this.startY) %
+					(y / this.height +
+						this.gridColors[0].length * this.height +
+						this.startY) %
 					this.gridColors[0].length;
-
-					console.log(x, y, "<<<<<<")
 
 				const square = new Square(
 					x,
@@ -78,11 +86,18 @@ export default class GridLayer extends VisualLayer {
 					this.gridColors[ix][iy]
 				);
 
-				// if(x > stageBoundX && y < stageBoundY) {
-				// 	await square.getDataFromGun()
-				// }
-				this.layer.add(square.render());
-				this.layer.add(square.renderText());
+				const normalizeX = (x) => ((x - startX) / this.width);
+				const normalizeY = (y) => ((y - startY) / this.height);
+
+				const isBoundedByLeftTop = (normalizeX(x + this.width) > normalizeX(stage.x - this.width)) && (normalizeY(y + this.height) > (normalizeY(stage.y - this.height)))
+				const isBoundedByRightBottom = (normalizeY(stage.x + stage.w) > normalizeX(x)) && (normalizeY(y + stage.h) > (normalizeY(y)))
+				
+				this.layer.add(square.rect);
+				this.layer.add(square.text);
+
+				if (isBoundedByLeftTop && isBoundedByRightBottom) {
+					square.getDataFromGun();
+				}
 			}
 		}
 		return;
