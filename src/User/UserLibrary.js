@@ -1,63 +1,138 @@
 import { v4 } from "uuid";
-import { gun } from '../gun/init-gun'
+import { gun, user } from '../gun/init-gun'
 
 export default class UserLibrary {
-	static async createChatsCertificate(publicKey) {
-		let certificate = await gun.user().get("certificates").get(publicKey).get("chats").once();
-		if (certificate) return certificate;
-    
-    certificate = await SEA.certify([publicKey], [{ "*": "chats" }], await gun.user().pair(), null);
+	static async generateFriendRequestsCertificate() {
+		let certificate = await gun.user().get("certificates").get("friendRequests").once(r => r);
 
-		return gun.user().get("certificates").get(publicKey).get("chats").put(
-      certificate,
-      ({ err }) => {
-				if (err) return new Error(err);
-        return certificate; 
+		if (certificate) {
+			return certificate;
+		}
+
+		certificate = await SEA.certify(
+			["*"],
+			[{ "*": "friendRequests" }],
+			await gun.user().pair(),
+			null
+		);
+
+		await gun
+			.user()
+			.get("certificates")
+			.get("friendRequests")
+			.put(certificate, ({ err }) => {
+				if (err) return console.warn(err);
+				return certificate
+			});
+
+		return certificate;
+	}
+
+	static async generateAddFriendCertificate(publicKey) {
+		let certificate = await gun.user().get("certificates").get(publicKey).get("addFriend").once(r => r);
+
+		if (certificate) return certificate;
+
+		certificate = await SEA.certify([publicKey], [{ "*": "friends" }], await gun.user().pair(), null);
+
+		return await gun.user().get("certificates").get(publicKey).get("addFriend").put(
+			certificate,
+			({ err }) => {
+				if (err) return console.warn(err);
+				return certificate;
 			});
 	}
 
+	static async addFriendRequest(publicKey) {
+		let certificate = await gun
+			.user(publicKey)
+			.get("certificates")
+			.get("friendRequests");
+
+		if (!certificate) {
+			return console.warn("No add friend certificate found")
+		}
+
+		await gun
+			.user(publicKey)
+			.get("friendRequests")
+			.set(
+				user.is.pub,
+				({ err }) => {
+					if (err) return console.warn(err);
+
+					try {
+						UserLibrary.generateAddFriendCertificate(
+							publicKey,
+						);
+					} catch (e) {
+						console.log("ERROR", e)
+					}
+				},
+				{ opt: { cert: certificate } }
+			);
+	}
+
+	static async acceptFriendRequest(key, publicKey) {
+
+		console.log("TRYING TO ACCEPT A FRIEND OVER HERE")
+
+		await gun.user().get("friendRequests").get(key).put(null, async ({ err }) => { if (err) return console.warn(err) });
+
+		let certificate = await gun.user(publicKey).get("certificates").get(user.is.pub).get("addFriend");
+
+		if (!certificate) {
+			return console.warn('No AddFriend Certificate')
+		}
+
+		await gun.user(publicKey).get("friends").set(user.is.pub, async ({ err }) => { if (err) return console.warn(err) });
+
+		await gun.user().get("friends").set(
+			publicKey,
+			({ err }) => { if (err) return console.warn(err) },
+			{ opt: { cert: certificate } }
+		);
+	}
+
+	static async createChatsCertificate(publicKey) {
+		let certificate = await gun.user().get("certificates").get(publicKey).get("chats").once(r => r);
+
+		console.log(certificate);
+
+		if (certificate) return certificate;
+
+		certificate = await SEA.certify([publicKey], [{ "*": "chats" }], await gun.user().pair(), null);
+
+		await gun.user().get("certificates").get(publicKey).get("chats").put(certificate, ({ err }) => { if (err) return console.warn(err) });
+
+		return certificate;	
+	}
+
 	static async createChat(publicKey) {
-		gun
-			.user()
-			.get("chats")
-			.get(publicKey)
-			.once(async (chatExists) => {
+		await gun.user().get("chats").get(publicKey).once(async (chatExists) => {
 				if (chatExists) return JSON.parse(chatExists);
 
-				let friend = await gun.user(publicKey).once();
-				let userPub = await gun.user().pair().pub;
+				let friend = await gun.user(publicKey).once(r => r);
+				let userPub = await gun.user().pair().pub;				
 
-				if (!userPub) return new Error("Could not find pub.");
-				if (!friend) return new Error("Could not find friend.");
+				if (!userPub) return console.warn("Could not find pub.");
+				if (!friend) return console.warn("Could not find friend.");
 
 				let chatCertificate = await gun.user(publicKey).get("certificates").get(userPub).get("chats");
 
-        console.log(chatCertificate, "<<<<");
-
-				if (!chatCertificate) {
-          console.log("MAKING A NEW CERT FOR CHAT")
-					const { certificate } = await UserLibrary.createChatsCertificate(publicKey);
-					chatCertificate = certificate
-				}
+				if (!chatCertificate) return console.warn("Could not find chat certificate of user.");
 
 				let roomId = v4();
 
-        console.log("ROOM ID!!", roomId);
+				console.log("ROOM ID!!", roomId);
 
-        console.log(chatCertificate, "<$<$<$$<");
-
-				await gun
-					.user(publicKey)
-					.get("chats")
-					.get(userPub)
-					.put(
-						JSON.stringify({
-							pub: userPub,
-							roomId,
-							latestMessage: {}
-						}),
-						({ err }) => {
-							if (err) return new Error(err);
+				await gun.user(publicKey).get("chats").get(userPub).put(
+					JSON.stringify({
+						pub: userPub,
+						roomId,
+						latestMessage: {}
+					}),
+					({ err }) => { if (err) return console.warn(err) });
 
 							gun
 								.user()
@@ -70,15 +145,15 @@ export default class UserLibrary {
 										latestMessage: {}
 									}),
 									({ err }) => {
-										if (err) return new Error(err);
+										if (err) return console.warn(err);
 									},
 									{ opt: { cert: chatCertificate } }
 								);
 						}
 					);
 
-        return roomId;
-			});      
+				return roomId;
+			});
 	}
 
 	static async createMessagesCertificate(publicKey) {
@@ -87,7 +162,7 @@ export default class UserLibrary {
 			.get("certificates")
 			.get(publicKey)
 			.get("messages")
-			.once();
+			.once(r => r);
 
 		if (certificateExists) return;
 
@@ -128,22 +203,28 @@ export default class UserLibrary {
 
 			console.log(roomId, "ROOM ID");
 
-			if (!userPub) return new Error("Could not find pub.");
+			if (!userPub) return console.warn("Could not find pub.");
 
-			let chatCertificate = await gun.user(publicKey).get("certificates").get(userPub).get("chats");
+			let chatCertificate = await gun
+				.user(publicKey)
+				.get("certificates")
+				.get(userPub)
+				.get("chats");
 
 			if (!chatCertificate) {
-        chatCertificate = await UserLibrary.createChat(publicKey);
-      } 
+				chatCertificate = await UserLibrary.createChat(publicKey);
+			}
 
-      let messageCertificate = await gun
+			let messageCertificate = await gun
 				.user(publicKey)
 				.get("certificates")
 				.get(userPub)
 				.get("messages");
 
 			if (!messageCertificate) {
-				messageCertificate = await UserLibrary.createMessagesCertificate(publicKey);
+				messageCertificate = await UserLibrary.createMessagesCertificate(
+					publicKey
+				);
 			}
 
 			let messageId = v4();
@@ -172,30 +253,26 @@ export default class UserLibrary {
 				.get("chats")
 				.get(roomId)
 				.get("latestMessage")
-				.put(
-          encryptedMessage,
-          null,
-          { opt: { cert: messageCertificate }}
-        );
+				.put(encryptedMessage, null, { opt: { cert: messageCertificate } });
 			gun
 				.user()
 				.get("messages")
 				.get(roomId)
 				.set(encryptedMessage, ({ err }) => {
-					if (err) return new Error(err);
+					if (err) return console.warn(err);
 
 					gun
 						.user(publicKey)
 						.get("messages")
 						.get(roomId)
 						.set(encryptedMessage, ({ err }) => {
-							if (err) return new Error(err);
+							if (err) return console.warn(err);
 							return encryptedMessage;
 						});
 				});
 
-      console.log(encryptedMessage, "RES")
-      return encryptedMessage;
+			console.log(encryptedMessage, "RES");
+			return encryptedMessage;
 		} catch (e) {
 			console.log(e);
 		}

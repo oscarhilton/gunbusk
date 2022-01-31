@@ -12,6 +12,9 @@
   let windowEl
 
   onMount(async () => {
+    const certificate = await UserLibrary.createChatsCertificate();
+    console.log(certificate);
+    
     const { roomId, recipient } = chat
 
     let room = roomId

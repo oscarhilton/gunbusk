@@ -1,26 +1,45 @@
 <script>
+  import { onMount } from 'svelte'
   import UserTab from './UserTab.svelte'
   import { gun } from './gun/init-gun'
+  import UserLibrary from './user/UserLibrary'
 
   let friendsList = {};
   
-	gun.user().get('friends').map().on(async (pub, key) => {
-    if (pub) {
-      friendsList[key] = await gun.user(pub).once();
-    } else {
-      delete friendsList[key]
-    }
-	})
+  onMount(async () => {
+    gun.user().get('friends').map().on(async (pub, key) => {
+      if (pub) {
+        friendsList[key] = await gun.user(pub).once();
+        await UserLibrary.createChatsCertificate(pub)
+        await UserLibrary.createChat(pub)
+      } else {
+        delete friendsList[key]
+      }
+    })
+  })
 
   $: fl = Object.entries(friendsList)
+
+  const startChat = async (publicKey) => {
+    try {
+      await UserLibrary.createChat(publicKey)
+    } catch(e) {
+      console.log(e)
+    }
+    console.log("STARING CHAT ")
+  }
 
 </script>
 
 <div class="container">
   <span class="title">Friends list</span>
+  <ul>
   {#each fl as [key, friend]}
-    <UserTab alias={friend.alias} pub={friend.pub} key={friend.key} action={() => {}} actionText={"action"} />
+    <li key={key}>
+      <UserTab alias={friend.alias} pub={friend.pub} key={key} action={() => startChat(friend.pub)} actionText={"action"} />
+    </li>
   {/each}
+  </ul>
 </div>
 
 <style>

@@ -1,27 +1,28 @@
 <script>
-  export let client;
+  import { onMount } from 'svelte'
+  import UserLibrary from './user/UserLibrary';
 
   let publicKey;
 
+  onMount(async () => {
+    const certificate = await UserLibrary.generateFriendRequestsCertificate()
+    console.log(certificate)
+  })
+
   const handlePubkeyInput = (e) => publicKey = e.target.value;
-  const handleFriendRequest = (e) => {
-    e.preventDefault();
+
+  const handleFriendRequest = async (e) => {
     if (!publicKey.length) return;
-      client.generateFriendRequestsCertificate(res => {
-        console.log(res);
-      })
-      client.addFriendRequest(publicKey.trim(), res2 => {
-        console.log(res2)
-      })
+      await UserLibrary.addFriendRequest(publicKey.trim())
   }
 </script>
 
 <div>
   <h4>Add a new friend request</h4>
-  <form on:submit={handleFriendRequest}>
+  <form on:submit|preventDefault={handleFriendRequest}>
     <label>
       Public key
-      <textarea class="foo" on:input={handlePubkeyInput} />
+      <textarea on:input={handlePubkeyInput} />
     </label>
     <button type="submit">Submit</button>
   </form>

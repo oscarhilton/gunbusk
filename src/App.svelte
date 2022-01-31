@@ -9,6 +9,7 @@
 	import AddFriend from './AddFriend.svelte';
 	import Contract from './Contract.svelte';
 	import ChatRoom from './ChatRoom.svelte';
+	import FriendRequests from './FriendRequests.svelte';
 	import FriendsList from './FriendsList.svelte';
 	import ChatsList from './ChatsList.svelte';
 	import Explore from './Explore.svelte';
@@ -34,7 +35,7 @@
 	}
 
 	$: store = {
-		isAuthenticated: false,
+		isAuthed: false,
 		alias: null,
 		pub: null,
 	}
@@ -97,14 +98,15 @@
 
   <main style="height: calc(100% - 50px)">
 		<aside>
+				<FriendRequests />
 				<FriendsList />
 				<ChatsList />
-				<!-- <FriendsList friendsList={fl} excludeFrom={fr} action={startChat} actionText="Chat now!" /> -->
 		</aside>
 		<section>
 			<Route path="login">
 				<div transition:fade={{ duration: 250 }} style="height: 100%">
-					{#if !store.isAuthed }
+					hello world
+					{#if !store.pub }
 						<h3>Login</h3>
 						<LoginFrom onSubmit={login} />
 						<h3>Register</h3>
@@ -132,7 +134,7 @@
 			</Route> -->
 		</section>
 		<aside>
-			<Contract sender="User" onSign={acceptFriendRequest} />
+			<!-- <Contract sender="User" onSign={acceptFriendRequest} /> -->
 			<AddFriend client={client} />
 		</aside>
   </main>
