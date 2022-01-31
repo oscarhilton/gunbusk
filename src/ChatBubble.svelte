@@ -1,31 +1,32 @@
 <script>
+  import { onMount } from 'svelte'
   import { gun } from './gun/init-gun';
   import moment from 'moment';
 
-  export let message;
-  export let time;
-  export let isClient;
-  export let name = 'Anon';
+  export let messageJSON;
 
-  let alias;
+  let messages = {}
 
-  (async () => {
-    const user = await gun.user(name).then();
-    if (!user) return;
-    alias = user.alias;
-  })();
+  onMount(() => {
+    if (messageJSON.id) {
+      messages[messageJSON.id] = messageJSON;
+    }
+  })
 
+  $: messages = Object.entries(messages);
 </script>
 
 <div class="container">
-  <div class="stats">
-    <span class="time">{moment(time).fromNow()}</span>  <span class="name">{alias || name}</span>
-  </div>
-  <div class="aligner aligner--{isClient ? 'client' : 'other'}">
-    <div class="message message--{isClient ? 'client' : 'other'}">
-      {message}
+  {#each messages as [key, message]}
+    <div class="stats">
+      <span class="time">{moment(message.timeSent).fromNow()}</span>  <span class="name">{message.sender}</span>
     </div>
-  </div>
+    <div class="aligner aligner--{false ? 'client' : 'other'}">
+      <div class="message message--{false ? 'client' : 'other'}">
+        {message.content}
+      </div>
+    </div>
+  {/each}
 </div>
 
 <style>

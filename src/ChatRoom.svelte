@@ -1,53 +1,86 @@
 <script>
-  import { user } from './gun/init-gun';
+  import { onMount } from 'svelte'
+  import { gun, user } from './gun/init-gun';
   import ChatFeedMessage from './ChatFeedMessage.svelte';
   import ChatBubble from './ChatBubble.svelte';
+  import UserLibrary from './user/UserLibrary';
 
-  export let chatReady = false;
-  export let chatsList;
-  export let messageList;
-  export let sendMessage;
-  
-  let latestMessage;
-  let publicKey;
-  let roomId;
-  let message = `HELLO WORLD !!! ${new Date()}`;
-
+  // Create a local store to cache data from GUN
   let messages = {}
+  export let chat;
 
-  chatsList.subscribe(({ latestMessage: l, pub: p, roomId: i }) => {
-    latestMessage = l;
-    publicKey = p;
-    roomId = i;
-    messageList(i, p).subscribe(message => {
-      if (!message) return;
-      if (!message.individual) return;
-      const { content, id, sender, timeSent, type } = message.individual;
-      const obj = { [timeSent]: { id, content, id, sender, timeSent, type } };
-      Object.assign(messages, obj);
-      messages = { ...messages, obj };
-    });
-    chatReady = true;
-  });
+  let windowEl
 
-  const sendNewMessage = (e) => {
-    e.preventDefault();
-    if (!roomId || !publicKey || !message) return;
-    sendMessage(roomId, publicKey, message, res => console.log(res, "message result"));
-  }
+  onMount(async () => {
+    const { roomId, recipient } = chat
+
+    let room = roomId
+
+    if (!room) {
+      await UserLibrary.createChat(recipient)
+    }
+
+
+    // Creates a listener that iterates over keys found in the "todo" node in GUN
+    gun.user().get("messages").get(room).map().on(async (message, key) => {
+      let userPair = await gun.user()._.sea;
+      let friend = await gun.user(recipient);
+
+      let decryptSecretFriend = await SEA.secret(friend.epub, userPair);
+      let decryptedMessageFriend = await SEA.decrypt(message.toString(), decryptSecretFriend);
+
+      if (decryptedMessageFriend) {
+        // Updates the store with the new value
+        messages[key] = decryptedMessageFriend
+      } else {
+        delete messages[key]
+        messages = messages
+      }
+    })
+
+  })
+  
+
+  
+	// The below lines listens for updates in the store and creates
+	// more convenient variables for use in markup
+	$: messages = Object.entries(messages)
+	// $: done = todos.filter(([key, todo]) => todo.done).length
+
+
+  async function onSubmit(e) {
+    if (!chat.roomId || !chat.pub) return console.log("OH NO", chat)
+    const formData = new FormData(e.target);
+
+    const data = {};
+    for (let field of formData) {
+      const [key, value] = field;
+      data[key] = value;
+    }
+
+    const { message } = data;
+    await UserLibrary.sendMessage(chat.roomId, chat.pub, message, res => console.log(res))
+  }	
 </script>
 
 <div class='container'>
-  <div class='chat-window chat-window--{chatReady ? 'ready' : 'waiting'}'>
+  <div bind:this={windowEl} class='chat-window'>
     <ChatFeedMessage />
-    {#each Object.values(messages) as { content, timeSent, sender, type, id }}
-      <ChatBubble message={content} time={timeSent} isClient={sender === user.is.pub } name={sender} id={id} type={type} />
+    {#each messages as [key, messageJSON]}
+      <div class='chat-message'>
+        <ChatBubble messageJSON={messageJSON} />
+      </div>
     {/each}
   </div>
   <div>
     <div class='text-box'>
-      <form on:submit={sendNewMessage}>
-        <input class="text-input" />
+      <form on:submit|preventDefault={onSubmit}>
+        <input 
+          class="text-input" 
+          type="text"
+          id="message"
+          name="message"
+        />
         <button type="submit">Send!</button>
       </form>
     </div>

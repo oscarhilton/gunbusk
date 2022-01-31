@@ -735,7 +735,7 @@ export default class User {
 		});
 	}
 
-	sendMessage(roomId, publicKey, message, callback = () => {}) {
+	static sendMessage(roomId, publicKey, message, callback = () => {}) {
 		(async (callback = () => {}) => {
 			let userPub = await gun.user().pair().pub;
 			let userPair = await gun.user()._.sea;

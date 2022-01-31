@@ -1,21 +1,26 @@
 <script>
   import UserTab from './UserTab.svelte'
+  import { gun } from './gun/init-gun'
 
-  export let friendsList;
-  export let excludeFrom;
-  export let action;
-  export let actionText;
+  let friendsList = {};
+  
+	gun.user().get('friends').map().on(async (pub, key) => {
+    if (pub) {
+      friendsList[key] = await gun.user(pub).once();
+    } else {
+      delete friendsList[key]
+    }
+	})
+
+  $: fl = Object.entries(friendsList)
+
 </script>
 
 <div class="container">
-  <span class="title">This is a title</span>
-  {#if friendsList}
-    {#each Object.keys(friendsList) as friend}
-      {#if friend && !Object.keys(excludeFrom).includes(friend)}
-        <UserTab alias={friendsList[friend].alias} pub={friendsList[friend].pub} key={friendsList[friend].key} action={action} actionText={actionText} />
-      {/if}
-    {/each}
-  {/if}
+  <span class="title">Friends list</span>
+  {#each fl as [key, friend]}
+    <UserTab alias={friend.alias} pub={friend.pub} key={friend.key} action={() => {}} actionText={"action"} />
+  {/each}
 </div>
 
 <style>

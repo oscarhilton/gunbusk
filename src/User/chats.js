@@ -1,4 +1,4 @@
-import { gun } from '../Gun/init-gun';
+import { gun } from '../gun/init-gun';
 import { Observable } from "rxjs";
 
 export const chatsList = () =>

@@ -1532,6 +1532,13 @@ svelte-navigator@^3.1.5:
   dependencies:
     svelte2tsx "^0.1.151"
 
+svelte-scrollto@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/svelte-scrollto/-/svelte-scrollto-0.2.0.tgz#a1da47876466796bba4533a4346537f752f01680"
+  integrity sha512-l4K2E4jr6dXCODtZDCkpp/TzknVVoq8gecHM0UOOmihvLosczdyLuyDUhZ+U2HkhLWi7nnimuOstZSFKtXSpmA==
+  dependencies:
+    svelte "3.x"
+
 svelte-switch@^0.0.5:
   version "0.0.5"
   resolved "https://registry.npmjs.org/svelte-switch/-/svelte-switch-0.0.5.tgz"
@@ -1549,6 +1556,11 @@ svelte2tsx@^0.1.151:
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
+
+svelte@3.x:
+  version "3.46.3"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.46.3.tgz#31202b0c795f276726d95b648b6dd413116257ac"
+  integrity sha512-mTOXvv74CVQqJHqoIZDprVfRKVVmYNadXP0VKnOEA54223kLGCr1nMrifS4Zx29qMt/xRB38Eq1D7dDH/fM8fQ==
 
 svelte@^3.0.0, svelte@^3.16.0:
   version "3.46.2"

@@ -9,7 +9,8 @@
 	import AddFriend from './AddFriend.svelte';
 	import Contract from './Contract.svelte';
 	import ChatRoom from './ChatRoom.svelte';
-	import FriendsList from './FriendsList.svelte'; 
+	import FriendsList from './FriendsList.svelte';
+	import ChatsList from './ChatsList.svelte';
 	import Explore from './Explore.svelte';
 	import Profile from './Profile.svelte';
 
@@ -18,11 +19,11 @@
   import ImFilm from 'svelte-icons-pack/im/ImFilm';
 	import ImKey from 'svelte-icons-pack/im/ImKey';
 
+	import { gun } from './gun/init-gun'
+
 	export let client;
 	export let user;
 	export let url = "";
-
-	console.log(client);
 
 	const login = (username, password) => {
 		client.loginUser({ username, password }, (payload) => console.log(payload));
@@ -32,32 +33,18 @@
 		client.registerUser({ username, password }, (payload) => console.log(payload));
 	}
 
-	let isAuthed;
-	client.isAuthenticated.subscribe(x => isAuthed = x);
+	$: store = {
+		isAuthenticated: false,
+		alias: null,
+		pub: null,
+	}
 
-	let alias;
-	client.alias.subscribe(x => alias = x);
+	client.isAuthenticated.subscribe(x => store.isAuthed = x);
+	client.alias.subscribe(x => store.alias = x);
+	client.pub.subscribe(x => store.pub = x);
+	
 
-	let pub;
-	client.pub.subscribe(x => pub = x);
-
-	let fr = {};
-	client.friendRequests.subscribe(x => {
-		if (x && x.alias) {
-			Object.assign(fr, {[x.alias]: x });
-			fr = fr;
-		}
-	});
-
-	let fl = {};
-	client.friendsList.subscribe(x => {
-		if (x && x.alias) {
-			Object.assign(fl, {[x.alias]: x });
-			fl = fl;
-		}
-	});
-
-	console.log(client)
+	// console.log(client, "FOOBAR")
 
 	const acceptFriendRequest = (pub, key) => {
 		client.acceptFriendRequest({ key: key, publicKey: pub });
@@ -81,23 +68,25 @@
 <Router url="{url}">
   <header class="navigation">
 		<div class="user">
-			{#if pub}
+			{#if store.pub}
 					<div class="keys">
 						<div class='icon'>
 							<button>
 								<Icon src={ImKey} size="1em" />
 							</button>
 						</div>
-						<Gravatar email={pub} default="identicon" />
+						<Gravatar email={store.pub} default="identicon" />
 					</div>
-					<!-- {alias} -->
-					<!-- {pub} -->
+					<div>
+						{store.alias}
+						<span>{store.pub}</span>
+					</div>
 			{/if}
 		</div>
     <nav>
       <Link to="/">home</Link>
       <Link to="login">login</Link>
-			{#if pub}
+			{#if store.pub}
 				<Link to="stream">stream</Link>
 				<Link to="chat">chat</Link>
 				<Link to="explore">explore</Link>
@@ -107,14 +96,15 @@
   </header>
 
   <main style="height: calc(100% - 50px)">
-		<!-- <aside>
-				<FriendsList friendsList={fr} excludeFrom={{}} action={acceptFriendRequest} actionText="accept" />
-				<FriendsList friendsList={fl} excludeFrom={fr} action={startChat} actionText="Chat now!" />
-		</aside> -->
+		<aside>
+				<FriendsList />
+				<ChatsList />
+				<!-- <FriendsList friendsList={fl} excludeFrom={fr} action={startChat} actionText="Chat now!" /> -->
+		</aside>
 		<section>
 			<Route path="login">
 				<div transition:fade={{ duration: 250 }} style="height: 100%">
-					{#if !isAuthed || !alias }
+					{#if !store.isAuthed }
 						<h3>Login</h3>
 						<LoginFrom onSubmit={login} />
 						<h3>Register</h3>
@@ -123,7 +113,7 @@
 				</div>
 			</Route>
 
-			<Route path="stream">
+			<!-- <Route path="stream">
 				<div transition:fade={{ duration: 250 }} style="height: 100%">
 					<LiveStream pub={pub} client={client} />
 				</div>
@@ -139,12 +129,12 @@
 
 			<Route path='profile'>
 				<Profile client={client} publicKey={pub} />
-			</Route>
+			</Route> -->
 		</section>
-		<!-- <aside>
+		<aside>
 			<Contract sender="User" onSign={acceptFriendRequest} />
 			<AddFriend client={client} />
-		</aside> -->
+		</aside>
   </main>
 </Router>
 
